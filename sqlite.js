@@ -32,8 +32,8 @@
 			create table t_user (
 				account Varchar(10) not null,
 				pwd Varchar(50) not null,
-				name NVarchar(20),
-				signature NVarchar(50),
+				name NVarchar(20) default '默认昵称',
+				signature NVarchar(50) default '默认个性签名',
 				sex Int2 default 1
 			)
 		`);
@@ -72,7 +72,7 @@
 		 * |user1_id|Integer|外键，对应t_user表的rowid，表示与user2是好友|
 		 * |user2_id|Integer|外键，对应t_user表的rowid，表示与user1是好友|
 		 * |remark|NVarchar(30)|user1对user2的备注名称|
-		 * |friend_group_id|Integer|外键，对应friend_group的rowid，表示user2在user1的哪个好友分组|
+		 * |friend_group_id|Integer|外键，对应t_friend_group的rowid，表示user2在user1的哪个好友分组|
 		 */
 		sqls.push(`
 			create table t_relation (
@@ -156,27 +156,37 @@
 		`);
 		sqls.push(`
 			insert into t_friend_group (user_id, name)
-			select 6, '特别关注'
+			select 1, '我的好友'
+			union select 2, '我的好友'
+			union select 3, '我的好友'
+			union select 4, '我的好友'
+			union select 5, '我的好友'
+			union select 6, '特别关注'
 			union select 6, '我的好友'
 			union select 6, '同学'
 		`);
 		sqls.push(`
 			insert into t_relation (user1_id, user2_id, remark, friend_group_id)
-			select 6, 1, '备注为逗逼', 1
-			union select 6, 2, '', 1
-			union select 6, 3, '', 1
-			union select 6, 4, '', 2
-			union select 6, 5, '', 2
+			select 6, 1, '备注为逗逼', 6
+			union select 6, 2, '', 6
+			union select 6, 3, '', 7
+			union select 6, 4, '', 8
+			union select 6, 5, '', 7
+			union select 1, 6, '', 1
+			union select 2, 6, '', 2
+			union select 3, 6, '', 3
+			union select 4, 6, '', 4
+			union select 5, 6, '', 5
 		`);
 		sqls.push(`
 			insert into t_msg (from_id, to_id, conversation_id, content, time)
-			select 6, 1, '1_6', '嗯嗯', current_timestamp
-			union select 6, 2, '2_6', '敲代码去，我在自己搞个vue.js的项目来玩，不然老学不到这些新的技术', datetime(1493941446, 'unixepoch')
-			union select 3, 6, '3_6', '我有一把大大的雨伞', datetime(1493941466, 'unixepoch')
-			union select 6, 3, '3_6', '明天记得带过来，可能会下大暴雨啊', datetime(1493941468, 'unixepoch')
-			union select 3, 6, '3_6', 'ok', datetime(1493941469, 'unixepoch')
-			union select 6, 4, '4_6', '是的，就是这么6', datetime(1493941436, 'unixepoch')
-			union select 5, 6, '5_6', '[好咧]', datetime(1493941426, 'unixepoch')
+			select 6, 1, '1_6', '嗯嗯', strftime('%Y-%m-%d %H:%M:%f', 'now', 'localtime')
+			union select 6, 2, '2_6', '敲代码去，我在自己搞个vue.js的项目来玩，不然老学不到这些新的技术', strftime('%Y-%m-%d %H:%M:%f', 1493941446.123, 'unixepoch')
+			union select 3, 6, '3_6', '我有一把大大的雨伞', strftime('%Y-%m-%d %H:%M:%f', 1493941466.123, 'unixepoch')
+			union select 6, 3, '3_6', '明天记得带过来，可能会下大暴雨啊', strftime('%Y-%m-%d %H:%M:%f', 1493941468.123, 'unixepoch')
+			union select 3, 6, '3_6', 'ok', strftime('%Y-%m-%d %H:%M:%f', 1493941469.123, 'unixepoch')
+			union select 6, 4, '4_6', '是的，就是这么6', strftime('%Y-%m-%d %H:%M:%f', 1493941436.123, 'unixepoch')
+			union select 5, 6, '5_6', '[好咧]', strftime('%Y-%m-%d %H:%M:%f', 1493941426.123, 'unixepoch')
 		`);
 
 		(function exec(sqls) {
@@ -204,7 +214,7 @@
 		const cID = Math.min(arg.fromID, arg.toID) + '_' + Math.max(arg.fromID, arg.toID);
 		const sql = `
 			insert into t_msg (from_id, to_id, conversation_id, group_id, content, time)
-			values (${arg.fromID}, ${arg.toID}, '${cID}', ${arg.groupID || 0}, '${arg.msg}', current_timestamp)
+			values (${arg.fromID}, ${arg.toID}, '${cID}', ${arg.groupID || 0}, '${arg.msg}', strftime('%Y-%m-%d %H:%M:%f', 'now', 'localtime'))
 		`;
 		db.run(sql, err => {
 			err && console.error(err);
@@ -365,6 +375,40 @@
 					and pwd = '${arg.pwd}'`;
 		db.get(sql, (err, row) => {
 			!err && arg.callback && arg.callback({ error: 0, list: [row] });
+		});
+	}
+
+	/**
+	 * 注册
+	 * @param  {object} arg
+	 * @param {string} arg.account 注册帐号
+	 * @param {string} arg.pwd 注册密码
+	 * @param {function} arg.callback 回调函数，错误码
+	 *
+	 * |error|说明|
+	 * |--|--|
+	 * |0|注册成功|
+	 * |1|帐号已被注册|
+	 */
+	Sqlite.register = function(arg) {
+		const sql = `select 1 from t_user where account = ${arg.account}`;
+		db.get(sql, (err, row) => {
+			err && console.error(err);
+			if (!err) {
+				// 帐号未被注册
+				if (row === undefined) {
+					const sqlStr = `insert into t_user (account, pwd) 
+						values ('${arg.account}', '${arg.pwd}')`
+					db.run(sqlStr, err => {
+						err && console.log(err);
+						!err && arg.callback && arg.callback({ error: 0 });
+					});
+				}
+				// 帐号已被注册
+				else {
+					arg.callback && arg.callback({ error: 1 });
+				}
+			}
 		});
 	}
 
