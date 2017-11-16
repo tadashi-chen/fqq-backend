@@ -23,7 +23,7 @@ router.use(function(req, res, next) {
 
 	function unvalid(res) {
 		// res.append('Verify', 'fail');
-		res.status(403).sendFile(path.join(__dirname, '../index.html'));
+		res.status(403).sendFile(path.join(__dirname, './index.html'));
 	}
 
 	//登录的请求不需要token
