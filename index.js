@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const bodyParser = require('body-parser');
-const router = require('./router');
+const router = require('./src/router');
 
 //设置静态文件路径
 app.use(express.static('assets'));

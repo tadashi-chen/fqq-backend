@@ -4,7 +4,7 @@
 
 **前端部分** 打包后生成的文件`index.html`与文件夹`static`，根据路径分别放于根目录与`assets`目录下即可。
 
-**后端部分** 后端只有`router.js`与`sqlite.js`两个文件有业务的改动，放根目录下，其中`router.js`里面有个地方根据相对路径寻找`index.html`文件，改下路径即可。
+**后端部分** 后端的核心文件只有`router.js`与`sqlite.js`这两个，放置于`src`目录下，前后端共用的js文件放置于`src/assets/js/common`中
 
 注： 这里的前后端代码都没有保持实时更新，最新以[fqq](https://github.com/wscj/fqq)为准，拷贝过来即可。
 
