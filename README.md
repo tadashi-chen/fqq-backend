@@ -1,4 +1,4 @@
-# fqq-backend
+# fqq-server
 
 > 我的另一个项目[fqq](https://github.com/wscj/fqq)，其后台部分与开发环境写在一块了，所以本项目作为生产环境的后台部分，本项目也是基于我的另一个express的[项目](https://github.com/wscj/express-demo)。
 
